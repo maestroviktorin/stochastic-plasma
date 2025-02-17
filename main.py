@@ -3,17 +3,17 @@ from PIL import Image
 import math
 
 # Источник алгоритма: https://en.wikipedia.org/wiki/Diamond-square_algorithm
-def generate_plasma_square_diamond_algorithm(size=256, roughness=0.5):
+def square_diamond_algorithm(size=256, roughness=.5) -> np.ndarray[np.float64]:
+    step = size
     size += 1
-    height_map = np.zeros((size, size))
+    array_pixels = np.zeros((size, size))
     
     # Углы со случайными цветами.
-    height_map[0, 0] = np.random.rand() * size
-    height_map[0, -1] = np.random.rand() * size
-    height_map[-1, 0] = np.random.rand() * size
-    height_map[-1, -1] = np.random.rand() * size
+    array_pixels[0, 0] = np.random.rand() * size
+    array_pixels[0, -1] = np.random.rand() * size
+    array_pixels[-1, 0] = np.random.rand() * size
+    array_pixels[-1, -1] = np.random.rand() * size
 
-    step = size - 1
     rand_range = size / 2
 
     while step > 1:
@@ -22,11 +22,11 @@ def generate_plasma_square_diamond_algorithm(size=256, roughness=0.5):
         # Алмаз
         for x in range(0, size-1, step):
             for y in range(0, size-1, step):
-                avg = (height_map[x, y] + 
-                       height_map[x+step, y] + 
-                       height_map[x, y+step] + 
-                       height_map[x+step, y+step]) / 4
-                height_map[x+half, y+half] = avg + np.random.uniform(-rand_range, rand_range)
+                avg = (array_pixels[x, y] + 
+                       array_pixels[x+step, y] + 
+                       array_pixels[x, y+step] + 
+                       array_pixels[x+step, y+step]) / 4
+                array_pixels[x+half, y+half] = avg + np.random.uniform(-rand_range, rand_range)
         
         # Квадрат
         for x in range(0, size, half):
@@ -34,33 +34,33 @@ def generate_plasma_square_diamond_algorithm(size=256, roughness=0.5):
                 total = 0
                 count = 0
                 if x >= half:
-                    total += height_map[x-half, y]
+                    total += array_pixels[x-half, y]
                     count += 1
                 if x + half < size:
-                    total += height_map[x+half, y]
+                    total += array_pixels[x+half, y]
                     count += 1
                 if y >= half:
-                    total += height_map[x, y-half]
+                    total += array_pixels[x, y-half]
                     count += 1
                 if y + half < size:
-                    total += height_map[x, y+half]
+                    total += array_pixels[x, y+half]
                     count += 1
                 if count > 0:
                     avg = total / count
-                    height_map[x, y] = avg + np.random.uniform(-rand_range, rand_range)
+                    array_pixels[x, y] = avg + np.random.uniform(-rand_range, rand_range)
         
         step = half
         rand_range *= roughness
 
-    return height_map
+    return array_pixels
 
-def main():
-    size = 2**8
-    plasma = generate_plasma_square_diamond_algorithm(size)
-    
+
+def generate_plasma(img_name='plasma.png', algorithm=square_diamond_algorithm, size=2**8, roughness=.5):
+    plasma = algorithm(size, roughness)
+
     img = Image.new('RGB', (size+1, size+1))
-    pixels = img.load()
-    
+    img_pixel_access = img.load()
+
     # Преобразование значений в цвета методом фазового кодирования.
     # Цветовая модель осуществляется поворотом по цветовому кругу.
     # 0 - красный, 120 - зелёный, 240 - синий.
@@ -70,9 +70,13 @@ def main():
             r = int(128 + 127 * math.sin(value * 0.1))
             g = int(128 + 127 * math.sin(value * 0.1 + 2))
             b = int(128 + 127 * math.sin(value * 0.1 + 4))
-            pixels[x, y] = (r, g, b)
+            img_pixel_access[x, y] = (r, g, b)
     
-    img.save('plasma.png')
+    img.save(img_name)
+
+
+def main():
+    generate_plasma()
 
 if __name__ == '__main__':
     main()
