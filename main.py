@@ -26,7 +26,7 @@ def square_diamond_algorithm(size=256, roughness=.5) -> np.ndarray[np.float64]:
                        array_pixels[x+step, y] + 
                        array_pixels[x, y+step] + 
                        array_pixels[x+step, y+step]) / 4
-                array_pixels[x+half, y+half] = avg + np.random.uniform(-rand_range, rand_range)
+                array_pixels[x+half, y+half] = avg + np.random.default_rng().uniform(-rand_range, rand_range)
         
         # Квадрат
         for x in range(0, size, half):
